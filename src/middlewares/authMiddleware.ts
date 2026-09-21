@@ -1,12 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 export const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = authHeader && authHeader.startsWith('Bearer ')
+        ? authHeader.split(' ')[1]
+        : undefined;
 
     if (!token) {
         res.status(401).json({ success: false, message: 'Akses ditolak. Token tidak ditemukan!' });
@@ -18,6 +17,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction): vo
         res.locals.userId = decoded.id;
         next();
     } catch (error) {
+        console.error('JWT error:', (error as Error).message);
         res.status(403).json({ success: false, message: 'Sesi tidak valid atau kedaluwarsa!' });
     }
 };
